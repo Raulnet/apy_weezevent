@@ -2,6 +2,7 @@ from api.core import CoreApi
 
 
 class Api(CoreApi):
+    AUTH_ACCESS_TOKEN = '/auth/access_token'
     EVENTS = '/events'
     DATES = '/dates'
     TICKETS = '/tickets'
@@ -13,6 +14,10 @@ class Api(CoreApi):
     EVENT_DETAILS = '/event/:id/details/'
     EVENT_SEARCH = '/event/search/'
     EVENT_CATEGORIES = '/event/categories/'
+
+    def post_auth_access_token(self, username, password):
+        params = {"username": username, "password": password}
+        return self._request_post(self.AUTH_ACCESS_TOKEN, params)
 
     def get_events(self, params={}):
         return self._request_get(self.EVENTS, params)

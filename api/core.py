@@ -1,39 +1,55 @@
 import requests
+import json
 
 
 class CoreApi:
-    AUTH_ACCESS_TOKEN = '/auth/access_token'
 
     def __init__(self, api_key, access_token=None):
         self.domain = 'https://api.weezevent.com'
+        self.headers = {'content-type': 'application/x-www-form-urlencoded', 'charset': 'utf-8'}
         self.api_key = api_key
         self.access_token = access_token
+
+    def _request(self, method, action, params={}, data={}):
+        if method == "GET":
+            return self._request_get(action, params)
+        if method == "POST":
+            return self._request_post(action, params, data)
+        if method == "PATCH":
+            return self._request_patch(action, params, data)
+        if method == "DELETE":
+            return self._request_delete(action, params, data)
 
     def _request_get(self, action, params={}):
         params = self._get_params(params)
         url = self.domain + action
         return requests.get(url, params=params)
 
-    def _request_post(self, action, params={}, data=None):
+    def _request_post(self, action, params={}, data={}):
         url = self.domain + action
-        headers = {'content-type': 'application/x-www-form-urlencoded', 'charset': 'utf-8'}
+        params = self._get_params(params)
+        data = {"data": json.dumps(data)}
+        return requests.post(url, headers=self.headers, params=params, data=data)
 
-        return requests.post(url, headers=headers, params=params, data=data)
+    def _request_patch(self, action, params={}, data={}):
+        url = self.domain + action
+        params = self._get_params(params)
+        data = {"data": json.dumps(data)}
+        return requests.patch(url, headers=self.headers, params=params, data=data)
+
+    def _request_delete(self, action, params={}, data={}):
+        url = self.domain + action
+        params = self._get_params(params)
+        data = {"data": json.dumps(data)}
+        return requests.delete(url, headers=self.headers, params=params, data=data)
 
     def _get_params(self, params={}):
         requests_params = Params(params)
         requests_params.api_key = self.api_key
-        if self.access_token is None:
-            raise Exception("access token undefined")
+        if self.access_token is not None:
+            requests_params.access_token = self.access_token
 
-        requests_params.access_token = self.access_token
         return requests_params.__dict__
-
-    def post_auth_access_token(self, username, password):
-        params = Params({"username": username, "password": password})
-        params.api_key = self.api_key
-
-        return self._request_post(self.AUTH_ACCESS_TOKEN, params.__dict__)
 
 
 class Params:
